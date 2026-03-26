@@ -1,0 +1,462 @@
+{
+  "name": "Whatsapp Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10,
+              "triggerAtMinute": 55
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1a0020d6-e636-48e4-b05d-015725bfe6c1",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1KtGBT-9_-l0CBoTfPbkk4dSY8A73c6b-CRAD_I8woKA",
+          "mode": "list",
+          "cachedResultName": "B'day sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KtGBT-9_-l0CBoTfPbkk4dSY8A73c6b-CRAD_I8woKA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KtGBT-9_-l0CBoTfPbkk4dSY8A73c6b-CRAD_I8woKA/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b37412ff-4b6f-4216-8951-9692332da894",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Ll8PvseQTSYEq3kd",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const todayDay = $today.day; \nconst todayMonth = $today.month;\n\nconst rawDate = $input.item.json.Birthday;\nif (!rawDate) return; // Skip if empty\n\nconst birthDate = DateTime.fromFormat(rawDate, 'd-M-yyyy');\n\n// Only return the item if it's a birthday match\nif (birthDate.isValid && birthDate.day === todayDay && birthDate.month === todayMonth) {\n  return $input.item;\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "6b2cbad5-2708-4d48-86cf-b709bcc238d5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "020434f1-036c-4a17-8276-07571d4590f8",
+              "name": "=name: ",
+              "value": "={{ $json['Name '] }}",
+              "type": "string"
+            },
+            {
+              "id": "72f6c3bc-e46d-4279-8504-066d50b0874f",
+              "name": "=Phone: ",
+              "value": "={{ $json.Phone }}",
+              "type": "string"
+            },
+            {
+              "id": "36cad02f-cd04-4d03-9f14-1bb38874de81",
+              "name": "=Birthday: ",
+              "value": "={{ $json.Birthday }}",
+              "type": "string"
+            },
+            {
+              "id": "cb7eceb4-c2f0-4381-b29a-3e44d66ee8c6",
+              "name": "=Relationship: ",
+              "value": "={{ $json.Relationship }}",
+              "type": "string"
+            },
+            {
+              "id": "aa7843c6-2bb4-416d-af4e-c421e010a5bc",
+              "name": "=Notes: ",
+              "value": "={{ $json.Notes }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "3a725fdd-e704-417b-b034-526778911021",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Got it. To keep your workflow from breaking, the AI needs to understand that those characters are strictly forbidden because they act as \"control characters\" in JSON.\n\nHere is the updated prompt with the reinforced guardrails:\n\nThe Updated Prompt\nPlaintext\nRole: You are a warm, thoughtful, and fun family member writing a short birthday message.\n\nTask: Write a short, friendly, and warm birthday message for the person detailed below. \n- Tailor the message to the relationship.\n- Keep it under 25 words.\n- Include 2-3 fun emojis.\n\nCRITICAL JSON-SAFE GUARDRAILS:\n1. Output ONLY the message text. No labels, no \"Here is your message,\" and no extra text.\n2. STRIKTLY FORBIDDEN: Do not use the backslash (\\) or double quotes (\") anywhere in the message.\n3. No internal line breaks or special escape characters or any brackets.\n4. Do not wrap the message in quotation marks. \n5. The output must be raw, plain text only.\n\nDetails:\nName: {{ $json[\"name: \"] }}\nRelationship: {{ $json[\"Relationship: \"] }}\nNotes:{{ $json[\"Notes: \"] }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        864,
+        -144
+      ],
+      "id": "188ed896-5f78-476e-9d49-3c38acdb1c92",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "mistralai/mixtral-8x7b-instruct",
+        "options": {
+          "maxTokens": 300
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        976,
+        0
+      ],
+      "id": "e2a50976-6fd2-4f4d-83a8-dad50f7edce8",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "0T90nDK0ewiZsBYk",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1136,
+        112
+      ],
+      "id": "66a9860c-a002-48f4-a27c-0bd88369e958",
+      "name": "Merge",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "90984649-860f-4a06-ad44-fef8656b5b1c",
+              "name": "name",
+              "value": "={{ $json[\"name: \"] }}",
+              "type": "string"
+            },
+            {
+              "id": "7d75feaa-c579-49b7-bae1-ca7e02ca6989",
+              "name": "phone",
+              "value": "={{ \"91\" + $json[\"Phone: \"] }}",
+              "type": "string"
+            },
+            {
+              "id": "ac22521c-a852-48e3-b528-2bda598df7ee",
+              "name": "message",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1360,
+        -32
+      ],
+      "id": "cc973199-a354-4faa-b059-f7db38d2c1ee",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.green-api.com/waInstance7107562821/sendMessage/a20ca273cd0b4899b07aa28dc06948c21a9f1b59c58e4a9a90",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"Content-Type\": \"application/json\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chatId\": \"{{ $json.phone }}@c.us\",\n  \"message\": \"{{ $json.message }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1568,
+        -32
+      ],
+      "id": "79e6d81a-b46c-4471-93da-9e42b9a5b44a",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1KtGBT-9_-l0CBoTfPbkk4dSY8A73c6b-CRAD_I8woKA",
+          "mode": "list",
+          "cachedResultName": "B'day sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KtGBT-9_-l0CBoTfPbkk4dSY8A73c6b-CRAD_I8woKA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KtGBT-9_-l0CBoTfPbkk4dSY8A73c6b-CRAD_I8woKA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name ": "={{ $('Edit Fields1').item.json.name }}",
+            "Status": "Sent"
+          },
+          "matchingColumns": [
+            "Name "
+          ],
+          "schema": [
+            {
+              "id": "Name ",
+              "displayName": "Name ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Birthday",
+              "displayName": "Birthday",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Relationship",
+              "displayName": "Relationship",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1776,
+        -32
+      ],
+      "id": "51492935-6739-4249-8557-e31ad8117bc3",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Ll8PvseQTSYEq3kd",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "2cd3bb48-9042-4ca5-b69b-10bcb443b6c4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "102f7b690b61c75a823c2ff731a15961d54d2d54b1488aa0e67bea92ba1ef634"
+  },
+  "id": "QqSZfejBLh2pI5MG",
+  "tags": []
+}
