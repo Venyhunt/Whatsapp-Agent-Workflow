@@ -1,26 +1,26 @@
-##Automated WhatsApp Birthday Messaging Workflow
+## Automated WhatsApp Birthday Messaging Workflow
 
-Overview:
+### Overview:
 This project is an automated workflow that sends personalized birthday messages via WhatsApp.
 
 It reads contact data from Google Sheets, checks for birthdays daily, generates a custom message using a language model, and sends it automatically using a WhatsApp API.
 
 The goal of this project was to explore how simple AI-powered workflows can be built for real-world personal use cases.
 
-Features:
+### Features:
 Daily automated birthday check
 Personalized message generation using an LLM
 WhatsApp message delivery via API
 Contact management using Google Sheets
 Logging of sent messages
 
-Tech Stack:
+### Tech Stack:
 n8n – workflow automation
 Green API – WhatsApp messaging
 Google Sheets – data storage
 Mistral 7B – message generation
 
-Workflow Architecture:
+### Workflow Architecture:
 A scheduled trigger runs daily
 Contact data is fetched from Google Sheets
 Birthdays matching the current date are filtered
@@ -28,7 +28,7 @@ A personalized message is generated using an LLM
 The message is sent via WhatsApp using Green API
 The sent message is logged back into Google Sheets
 
-Setup Instructions:
+### Setup Instructions:
 
 1. Clone the repository
 git clone https://github.com/Venyhunt/Whatsapp-Agent-Workflow
@@ -57,12 +57,12 @@ Update the prompt in the LLM node as needed
 Execute manually for testing
 Enable the schedule trigger for automation
 
-Limitations:
+### Limitations:
 Uses a workaround for WhatsApp personal messaging (not an official API)
 Free-tier APIs may have rate limits
 Requires the WhatsApp session to remain active
 
-Future Improvements:
+### Future Improvements:
 Integrate with official WhatsApp Business API
 Add retry and error handling
 Improve message personalization using richer context
